@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Graphene Integration Route Verifier</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --panel: #111620;
+    --panel2: #161c28;
+    --border: #1e2a3a;
+    --accent: #3b82f6;
+    --accent2: #22d3ee;
+    --gold: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --orange: #f97316;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #475569;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+- { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: var(–sans);
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image:
+linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+background-size: 40px 40px;
+pointer-events: none;
+z-index: 0;
+}
+
+.container {
+position: relative;
+z-index: 1;
+max-width: 1100px;
+margin: 0 auto;
+padding: 2rem 1.5rem 4rem;
+}
+
+.header {
+border-left: 3px solid var(–accent);
+padding-left: 1.25rem;
+margin-bottom: 2.5rem;
+animation: fadeIn 0.6s ease;
+}
+.header-label {
+font-family: var(–mono);
+font-size: 0.7rem;
+color: var(–accent2);
+letter-spacing: 0.15em;
+text-transform: uppercase;
+margin-bottom: 0.4rem;
+}
+.header h1 {
+font-size: 1.6rem;
+font-weight: 600;
+color: var(–text);
+line-height: 1.2;
+margin-bottom: 0.4rem;
+}
+.header p {
+font-size: 0.85rem;
+color: var(–text2);
+font-weight: 300;
+}
+
+.mode-toggle {
+display: flex;
+gap: 0;
+margin-bottom: 2rem;
+border: 1px solid var(–border);
+border-radius: 6px;
+overflow: hidden;
+width: fit-content;
+animation: fadeIn 0.7s ease;
+}
+.mode-btn {
+padding: 0.5rem 1.2rem;
+font-family: var(–mono);
+font-size: 0.75rem;
+letter-spacing: 0.05em;
+cursor: pointer;
+border: none;
+transition: all 0.2s;
+color: var(–text2);
+background: var(–panel);
+}
+.mode-btn.active {
+background: var(–accent);
+color: white;
+}
+.mode-hint {
+font-family: var(–mono);
+font-size: 0.72rem;
+color: var(–text3);
+margin-left: 1rem;
+align-self: center;
+}
+
+.inputs-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 1rem;
+margin-bottom: 1.5rem;
+animation: fadeIn 0.8s ease;
+}
+@media (max-width: 600px) { .inputs-grid { grid-template-columns: 1fr; } }
+
+.input-card {
+background: var(–panel);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 1rem 1.2rem;
+transition: border-color 0.2s;
+}
+.input-card:hover { border-color: var(–accent); }
+.input-card.warning { border-color: var(–orange); }
+.input-card.ok { border-color: var(–green); }
+
+.input-label {
+font-family: var(–mono);
+font-size: 0.7rem;
+color: var(–accent2);
+letter-spacing: 0.1em;
+text-transform: uppercase;
+margin-bottom: 0.2rem;
+}
+.input-desc {
+font-size: 0.78rem;
+color: var(–text2);
+margin-bottom: 0.7rem;
+line-height: 1.4;
+}
+.input-row {
+display: flex;
+align-items: center;
+gap: 0.8rem;
+}
+
+input[type=range] {
+-webkit-appearance: none;
+flex: 1;
+height: 4px;
+border-radius: 2px;
+background: var(–border);
+outline: none;
+cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+-webkit-appearance: none;
+width: 14px;
+height: 14px;
+border-radius: 50%;
+background: var(–accent);
+cursor: pointer;
+transition: background 0.2s;
+}
+input[type=range]:hover::-webkit-slider-thumb { background: var(–accent2); }
+
+input[type=number] {
+width: 110px;
+padding: 0.3rem 0.5rem;
+background: var(–panel2);
+border: 1px solid var(–border);
+border-radius: 4px;
+color: var(–text);
+font-family: var(–mono);
+font-size: 0.85rem;
+text-align: right;
+outline: none;
+transition: border-color 0.2s;
+}
+input[type=number]:focus { border-color: var(–accent); }
+
+.input-unit {
+font-family: var(–mono);
+font-size: 0.7rem;
+color: var(–text3);
+min-width: 60px;
+}
+.range-hint {
+font-family: var(–mono);
+font-size: 0.65rem;
+color: var(–text3);
+margin-top: 0.4rem;
+display: flex;
+justify-content: space-between;
+}
+.plausibility-warn {
+font-family: var(–mono);
+font-size: 0.68rem;
+color: var(–orange);
+margin-top: 0.35rem;
+display: none;
+}
+.plausibility-warn.show { display: block; }
+
+/* FIX: carrier density display for scientific notation */
+.cd-display {
+font-family: var(–mono);
+font-size: 0.82rem;
+color: var(–text);
+min-width: 90px;
+text-align: right;
+}
+
+.run-btn {
+display: flex;
+align-items: center;
+gap: 0.6rem;
+padding: 0.75rem 2rem;
+background: var(–accent);
+border: none;
+border-radius: 6px;
+color: white;
+font-family: var(–mono);
+font-size: 0.85rem;
+font-weight: 500;
+letter-spacing: 0.05em;
+cursor: pointer;
+transition: all 0.2s;
+margin-bottom: 2rem;
+}
+.run-btn:hover { background: #2563eb; transform: translateY(-1px); }
+.run-btn:active { transform: translateY(0); }
+.run-btn .spinner {
+width: 14px; height: 14px;
+border: 2px solid rgba(255,255,255,0.3);
+border-top-color: white;
+border-radius: 50%;
+animation: spin 0.7s linear infinite;
+display: none;
+}
+.run-btn.running .spinner { display: block; }
+.run-btn.running .btn-text { display: none; }
+
+.results {
+display: none;
+animation: slideUp 0.5s ease;
+}
+.results.show { display: block; }
+
+.results-header {
+font-family: var(–mono);
+font-size: 0.7rem;
+color: var(–text3);
+letter-spacing: 0.15em;
+text-transform: uppercase;
+margin-bottom: 1rem;
+display: flex;
+align-items: center;
+gap: 0.5rem;
+}
+.results-header::after {
+content: ‘’;
+flex: 1;
+height: 1px;
+background: var(–border);
+}
+
+.routes-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 1rem;
+margin-bottom: 2rem;
+}
+@media (max-width: 700px) { .routes-grid { grid-template-columns: 1fr; } }
+
+.route-card {
+background: var(–panel);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 1rem;
+position: relative;
+transition: all 0.3s;
+}
+.route-card.pareto {
+border-color: var(–accent);
+box-shadow: 0 0 20px rgba(59,130,246,0.1);
+}
+.route-card.top {
+border-color: var(–gold);
+box-shadow: 0 0 24px rgba(245,158,11,0.15);
+}
+.route-card.eliminated {
+opacity: 0.45;
+border-color: var(–border);
+}
+
+.route-badge {
+position: absolute;
+top: -8px;
+right: 10px;
+font-family: var(–mono);
+font-size: 0.6rem;
+padding: 0.15rem 0.5rem;
+border-radius: 3px;
+letter-spacing: 0.08em;
+text-transform: uppercase;
+font-weight: 600;
+}
+.badge-top { background: var(–gold); color: #0a0e14; }
+.badge-pareto { background: var(–accent); color: white; }
+.badge-out { background: var(–text3); color: var(–bg); }
+
+.route-name {
+font-family: var(–mono);
+font-size: 0.72rem;
+color: var(–accent2);
+letter-spacing: 0.08em;
+margin-bottom: 0.2rem;
+}
+.route-desc {
+font-size: 0.78rem;
+color: var(–text2);
+margin-bottom: 0.8rem;
+line-height: 1.4;
+}
+
+.prob-display {
+font-family: var(–mono);
+font-size: 1.8rem;
+font-weight: 600;
+margin-bottom: 0.15rem;
+line-height: 1;
+}
+.prob-label {
+font-family: var(–mono);
+font-size: 0.65rem;
+color: var(–text3);
+margin-bottom: 0.8rem;
+letter-spacing: 0.05em;
+}
+
+.prob-bar {
+height: 3px;
+background: var(–border);
+border-radius: 2px;
+margin-bottom: 0.8rem;
+overflow: hidden;
+}
+.prob-bar-fill {
+height: 100%;
+border-radius: 2px;
+transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+
+.binding {
+font-family: var(–mono);
+font-size: 0.65rem;
+padding: 0.2rem 0.5rem;
+border-radius: 3px;
+display: inline-block;
+}
+.binding-mob  { background: rgba(239,68,68,0.15);   color: #fca5a5; }
+.binding-cd   { background: rgba(249,115,22,0.15);  color: #fdba74; }
+.binding-dom  { background: rgba(168,85,247,0.15);  color: #d8b4fe; }
+.binding-def  { background: rgba(20,184,166,0.15);  color: #5eead4; }
+.binding-mono { background: rgba(234,179,8,0.15);   color: #fde68a; }
+.binding-none { background: rgba(16,185,129,0.15);  color: #6ee7b7; }
+
+.marginals {
+margin-top: 0.7rem;
+display: grid;
+grid-template-columns: repeat(5, 1fr);
+gap: 3px;
+}
+.marginal-cell { text-align: center; }
+.marginal-label {
+font-family: var(–mono);
+font-size: 0.55rem;
+color: var(–text3);
+margin-bottom: 2px;
+}
+.marginal-val {
+font-family: var(–mono);
+font-size: 0.68rem;
+font-weight: 500;
+}
+
+.comparison-section {
+background: var(–panel);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 1.2rem;
+margin-bottom: 2rem;
+}
+.comp-title {
+font-family: var(–mono);
+font-size: 0.7rem;
+color: var(–text2);
+letter-spacing: 0.1em;
+text-transform: uppercase;
+margin-bottom: 1rem;
+}
+.comp-row {
+display: flex;
+align-items: center;
+gap: 0.7rem;
+margin-bottom: 0.6rem;
+font-size: 0.82rem;
+}
+.comp-route {
+font-family: var(–mono);
+font-size: 0.72rem;
+color: var(–text2);
+min-width: 100px;
+}
+.comp-bars {
+flex: 1;
+display: flex;
+flex-direction: column;
+gap: 3px;
+}
+.comp-bar-row {
+display: flex;
+align-items: center;
+gap: 0.5rem;
+}
+.comp-bar-label {
+font-family: var(–mono);
+font-size: 0.6rem;
+color: var(–text3);
+min-width: 45px;
+}
+.comp-bar-track {
+flex: 1;
+height: 6px;
+background: var(–border);
+border-radius: 3px;
+overflow: hidden;
+position: relative;
+}
+.comp-bar-base {
+position: absolute;
+height: 100%;
+border-radius: 3px;
+opacity: 0.35;
+transition: width 0.8s ease;
+}
+.comp-bar-user {
+position: absolute;
+height: 100%;
+border-radius: 3px;
+transition: width 0.8s ease;
+}
+.comp-val {
+font-family: var(–mono);
+font-size: 0.68rem;
+min-width: 38px;
+text-align: right;
+}
+
+.diagnosis-box {
+background: var(–panel2);
+border: 1px solid var(–border);
+border-left: 3px solid var(–accent2);
+border-radius: 6px;
+padding: 1rem 1.2rem;
+margin-bottom: 2rem;
+}
+.diagnosis-title {
+font-family: var(–mono);
+font-size: 0.7rem;
+color: var(–accent2);
+letter-spacing: 0.1em;
+text-transform: uppercase;
+margin-bottom: 0.6rem;
+}
+.diagnosis-text {
+font-size: 0.85rem;
+color: var(–text2);
+line-height: 1.6;
+}
+
+.footer {
+margin-top: 3rem;
+padding-top: 1rem;
+border-top: 1px solid var(–border);
+font-family: var(–mono);
+font-size: 0.65rem;
+color: var(–text3);
+line-height: 1.6;
+}
+
+@keyframes fadeIn  { from { opacity: 0; transform: translateY(8px);  } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin    { to { transform: rotate(360deg); } }
+</style>
+
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="header-label">Solbakken R&amp;D · Paper 4 Companion Tool · March 2026</div>
+    <h1>Graphene Integration Route Verifier</h1>
+    <!-- FIX 2: header now correctly states N = 100,000 matching the MC call -->
+    <p>Input your process measurements to receive a personalised route ranking against paper baseline priors · N = 100,000 Monte Carlo samples</p>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:0;margin-bottom:2rem;animation:fadeIn 0.7s ease">
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-slider" onclick="setMode('slider')">EXPLORE (sliders)</button>
+      <button class="mode-btn" id="btn-text"   onclick="setMode('text')">PRECISE (measured values)</button>
+    </div>
+    <span class="mode-hint" id="mode-hint">— drag to explore the parameter space</span>
+  </div>
+
+  <div class="inputs-grid" id="inputs-grid">
+
+```
+<!-- Mobility -->
+<div class="input-card" id="card-mob">
+  <div class="input-label">Carrier Mobility (µ)</div>
+  <div class="input-desc">Post-transfer or post-process Hall mobility. Threshold: &gt; 3,000 cm²/V·s</div>
+  <div class="input-row">
+    <!-- slider: linear 100–12000 -->
+    <input type="range" id="sl-mob" min="100" max="12000" step="50" value="3000"
+           oninput="syncInput('mob', parseFloat(this.value))">
+    <input type="number" id="tx-mob" value="3000" min="100" max="50000"
+           oninput="syncSlider('mob', parseFloat(this.value))">
+    <span class="input-unit">cm²/V·s</span>
+  </div>
+  <div class="range-hint"><span>100</span><span>Threshold: 3,000</span><span>12,000+</span></div>
+  <div class="plausibility-warn" id="warn-mob">⚠ Value exceeds published state-of-the-art — verify measurement</div>
+</div>
+
+<!-- Carrier density -->
+<!-- FIX 1: slider now uses a logarithmic index (0–40) mapped to 1e10–1e13 in JS -->
+<div class="input-card" id="card-cd">
+  <div class="input-label">Carrier Density (n*)</div>
+  <div class="input-desc">Spatial std dev of residual doping. Threshold: &lt; 10¹¹ cm⁻²</div>
+  <div class="input-row">
+    <input type="range" id="sl-cd" min="0" max="40" step="1" value="20"
+           oninput="onCdSlider(this.value)">
+    <input type="number" id="tx-cd" value="1e12" min="1e9" max="1e14"
+           oninput="onCdText(this.value)">
+    <span class="input-unit">cm⁻²</span>
+  </div>
+  <div class="range-hint"><span>10¹⁰</span><span>Threshold: 10¹¹</span><span>10¹³</span></div>
+  <div class="plausibility-warn" id="warn-cd">⚠ Very low — confirm Raman strain decomposition applied</div>
+</div>
+
+<!-- Domain size -->
+<div class="input-card" id="card-dom">
+  <div class="input-label">Domain Size (L_domain)</div>
+  <div class="input-desc">Mean graphene grain/domain size. Threshold: &gt; 10 µm</div>
+  <div class="input-row">
+    <input type="range" id="sl-dom" min="0.1" max="1000" step="0.5" value="30"
+           oninput="syncInput('dom', parseFloat(this.value))">
+    <input type="number" id="tx-dom" value="30" min="0.01" max="5000"
+           oninput="syncSlider('dom', parseFloat(this.value))">
+    <span class="input-unit">µm</span>
+  </div>
+  <div class="range-hint"><span>0.1</span><span>Threshold: 10 µm</span><span>1000+</span></div>
+  <div class="plausibility-warn" id="warn-dom">⚠ Domain size below UNCD substrate physics floor</div>
+</div>
+
+<!-- Defect density -->
+<div class="input-card" id="card-def">
+  <div class="input-label">Defect Density (I_D/I_G)</div>
+  <div class="input-desc">Raman D-to-G peak ratio. Threshold: &lt; 0.1</div>
+  <div class="input-row">
+    <input type="range" id="sl-def" min="0.01" max="2.0" step="0.01" value="0.15"
+           oninput="syncInput('def', parseFloat(this.value))">
+    <input type="number" id="tx-def" value="0.15" min="0.001" max="5.0" step="0.01"
+           oninput="syncSlider('def', parseFloat(this.value))">
+    <span class="input-unit">ratio</span>
+  </div>
+  <div class="range-hint"><span>0.01</span><span>Threshold: 0.10</span><span>2.0</span></div>
+  <div class="plausibility-warn" id="warn-def">⚠ Very high defect density — confirm measurement technique</div>
+</div>
+
+<!-- Monolayer coverage -->
+<div class="input-card" id="card-mono">
+  <div class="input-label">Monolayer Coverage</div>
+  <div class="input-desc">Fraction of area that is single-layer graphene. Threshold: &gt; 95%</div>
+  <div class="input-row">
+    <input type="range" id="sl-mono" min="50" max="100" step="0.5" value="90"
+           oninput="syncInput('mono', parseFloat(this.value))">
+    <input type="number" id="tx-mono" value="90" min="0" max="100" step="0.5"
+           oninput="syncSlider('mono', parseFloat(this.value))">
+    <span class="input-unit">%</span>
+  </div>
+  <div class="range-hint"><span>50%</span><span>Threshold: 95%</span><span>100%</span></div>
+  <div class="plausibility-warn" id="warn-mono">⚠ Coverage below 60% — check for multilayer formation</div>
+</div>
+
+<!-- Route selector -->
+<div class="input-card" id="card-route">
+  <div class="input-label">Your Integration Route</div>
+  <div class="input-desc">Select the route whose priors should be updated with your measurements</div>
+  <select id="route-select" style="width:100%;padding:0.4rem 0.6rem;background:var(--panel2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:0.8rem;outline:none;margin-top:0.3rem">
+    <option value="all">All routes (compare your inputs)</option>
+    <option value="F">Route F — SCD(111) Ni-assisted + H-term</option>
+    <option value="I">Route I — CVD/Pt → hBN encapsulation</option>
+    <option value="J">Route J — CVD/Pt → bonded SCD(111)</option>
+    <option value="G">Route G — CVD/Pt → SiO₂</option>
+    <option value="H">Route H — CVD/Cu → SiO₂</option>
+  </select>
+  <div style="margin-top:0.8rem">
+    <div class="input-label" style="margin-bottom:0.3rem">Input Mode Recommendation</div>
+    <div id="mode-rec" style="font-size:0.75rem;color:var(--text2);line-height:1.5">
+      Use <strong>Explore</strong> mode to scan the parameter space and identify which parameters most influence route ranking.
+      Switch to <strong>Precise</strong> mode when you have actual measurements to compare against baseline.
+    </div>
+  </div>
+</div>
+```
+
+  </div><!-- /inputs-grid -->
+
+  <button class="run-btn" id="run-btn" onclick="runSimulation()">
+    <span class="btn-text">▶ RUN SIMULATION</span>
+    <div class="spinner"></div>
+  </button>
+
+  <!-- Results -->
+
+  <div class="results" id="results">
+
+```
+<div class="results-header">Route Rankings — Your Inputs</div>
+<div class="routes-grid" id="routes-grid"></div>
+
+<!-- FIX 5: comparison section now shows all 5 routes, not just F/I/J -->
+<div class="results-header">Comparison vs. Paper Baseline Priors</div>
+<div class="comparison-section">
+  <div class="comp-title">Your P(all 5) vs. Literature Prior P(all 5) — All Routes</div>
+  <div id="comparison-rows"></div>
+  <div style="margin-top:0.8rem;display:flex;gap:1.5rem">
+    <div style="display:flex;align-items:center;gap:0.4rem">
+      <div style="width:20px;height:6px;background:var(--accent);opacity:0.35;border-radius:2px"></div>
+      <span style="font-family:var(--mono);font-size:0.65rem;color:var(--text3)">Paper baseline</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.4rem">
+      <div style="width:20px;height:6px;background:var(--accent2);border-radius:2px"></div>
+      <span style="font-family:var(--mono);font-size:0.65rem;color:var(--text3)">Your inputs</span>
+    </div>
+  </div>
+</div>
+
+<div class="results-header">Constraint Diagnosis</div>
+<div class="diagnosis-box">
+  <div class="diagnosis-title">Assessment</div>
+  <div class="diagnosis-text" id="diagnosis-text"></div>
+</div>
+```
+
+  </div><!-- /results -->
+
+  <div class="footer">
+    Solbakken R&amp;D · Paper 4 Companion Verification Tool · March 2026<br>
+    Based on: "Graphene Integration Route Selection for Ferroelectric Photonic Memory: A Bayesian Quality Assessment Across Ten Process Scenarios"<br>
+    This tool applies literature-anchored lognormal priors updated by your input values as point estimates. Results are indicative; full posterior updating requires distributional measurements.<br>
+    Thresholds sized for 64×64 MVM tile with 0.5 dB total insertion loss budget. Relaxing to 1.0 dB shifts Route I from 38.6% to ~45.9% under baseline priors.
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────
+let mode = 'slider';
+const params = { mob: 3000, cd: 1e12, dom: 30, def: 0.15, mono: 90 };
+
+const THRESH = { mob: 3000, cd: 1e11, dom: 10, def: 0.1, mono: 95 };
+
+const WARN_ABOVE = { mob: 12000, def: 1.5 };
+const WARN_BELOW = { cd: 5e9, mono: 60, dom: 0.2 };
+
+// Paper baseline P(all 5) values
+const BASELINE = { F: 21.8, I: 38.6, J: 28.8, G: 13.7, H: 8.2 };
+
+// Route definitions
+const ROUTES = [
+  { id:'F', name:'Route F', desc:'SCD(111) Ni-assisted + H-termination', color:'#3b82f6',
+    prior:{ mob:{mean:3000,sd:0.6}, cd:{mean:3e11,sd:0.6}, dom:{mean:500,sd:0.5}, def:{mean:0.05,sd:0.5}, mono:{mean:90,sd:8} } },
+  { id:'I', name:'Route I', desc:'CVD/Pt → hBN encapsulation', color:'#22d3ee',
+    prior:{ mob:{mean:5000,sd:0.4}, cd:{mean:5e11,sd:0.5}, dom:{mean:30,sd:0.5}, def:{mean:0.02,sd:0.4}, mono:{mean:95,sd:5} } },
+  { id:'J', name:'Route J', desc:'CVD/Pt → bonded SCD(111)', color:'#a78bfa',
+    prior:{ mob:{mean:5000,sd:0.4}, cd:{mean:1e12,sd:0.6}, dom:{mean:30,sd:0.5}, def:{mean:0.02,sd:0.4}, mono:{mean:95,sd:5} } },
+  { id:'G', name:'Route G', desc:'CVD/Pt → SiO₂', color:'#94a3b8',
+    prior:{ mob:{mean:5000,sd:0.4}, cd:{mean:2e12,sd:0.7}, dom:{mean:30,sd:0.5}, def:{mean:0.02,sd:0.4}, mono:{mean:95,sd:5} } },
+  { id:'H', name:'Route H', desc:'CVD/Cu → SiO₂', color:'#64748b',
+    prior:{ mob:{mean:4000,sd:0.5}, cd:{mean:2.5e12,sd:0.8}, dom:{mean:50,sd:0.5}, def:{mean:0.03,sd:0.5}, mono:{mean:95,sd:5} } },
+];
+
+// ── FIX 1: Carrier density logarithmic slider helpers ─────────────────────
+// Maps slider index 0–40 → 1e10 – 1e13 (log scale)
+function cdIndexToValue(idx) {
+  const logMin = Math.log10(1e10); // 10
+  const logMax = Math.log10(1e13); // 13
+  return Math.pow(10, logMin + (idx / 40) * (logMax - logMin));
+}
+function cdValueToIndex(val) {
+  const logMin = 10, logMax = 13;
+  const logVal = Math.log10(Math.max(1e10, Math.min(1e13, val)));
+  return Math.round(((logVal - logMin) / (logMax - logMin)) * 40);
+}
+function formatCd(val) {
+  const exp = Math.floor(Math.log10(val));
+  const coeff = val / Math.pow(10, exp);
+  return coeff.toFixed(2) + ' × 10' + superscript(exp);
+}
+function superscript(n) {
+  const map = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
+  return String(n).split('').map(c => map[c] || c).join('');
+}
+function onCdSlider(idx) {
+  const val = cdIndexToValue(parseFloat(idx));
+  params.cd = val;
+  document.getElementById('tx-cd').value = val.toExponential(2);
+  checkPlausibility('cd', val);
+  updateCardState('cd', val);
+}
+function onCdText(val) {
+  val = parseFloat(val);
+  if (isNaN(val)) return;
+  params.cd = val;
+  document.getElementById('sl-cd').value = cdValueToIndex(val);
+  checkPlausibility('cd', val);
+  updateCardState('cd', val);
+}
+
+// ── MODE TOGGLE ───────────────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn-slider').classList.toggle('active', m === 'slider');
+  document.getElementById('btn-text').classList.toggle('active',   m === 'text');
+  document.getElementById('mode-hint').textContent =
+    m === 'slider' ? '— drag to explore the parameter space'
+                   : '— enter your measured values directly';
+  ['mob','dom','def','mono'].forEach(p => {
+    document.getElementById('sl-'+p).style.display = m === 'slider' ? '' : 'none';
+    document.getElementById('tx-'+p).style.display = m === 'slider' ? 'none' : '';
+  });
+  // carrier density: always show both (slider + number box are both useful)
+  document.getElementById('sl-cd').style.display = m === 'slider' ? '' : 'none';
+  document.getElementById('tx-cd').style.display = '';
+  updateModeRecommendation();
+}
+
+function updateModeRecommendation() {
+  const rec = document.getElementById('mode-rec');
+  if (mode === 'slider') {
+    rec.innerHTML = 'Currently in <strong>Explore</strong> mode — good for sensitivity analysis. Switch to <strong>Precise</strong> when you have Hall bar measurements to enter directly.';
+  } else {
+    rec.innerHTML = 'Currently in <strong>Precise</strong> mode — enter your measured values. Ensure carrier density reflects Raman strain-decomposed value (see Experiment 3).';
+  }
+}
+
+function syncInput(param, val) {
+  if (isNaN(val)) return;
+  params[param] = val;
+  document.getElementById('tx-'+param).value = val;
+  checkPlausibility(param, val);
+  updateCardState(param, val);
+}
+
+function syncSlider(param, val) {
+  if (isNaN(val)) return;
+  params[param] = val;
+  const sl = document.getElementById('sl-'+param);
+  if (sl) sl.value = val;
+  checkPlausibility(param, val);
+  updateCardState(param, val);
+}
+
+function checkPlausibility(param, val) {
+  const warnEl = document.getElementById('warn-'+param);
+  if (!warnEl) return;
+  let warn = false;
+  if (WARN_ABOVE[param] !== undefined && val > WARN_ABOVE[param]) warn = true;
+  if (WARN_BELOW[param] !== undefined && val < WARN_BELOW[param]) warn = true;
+  warnEl.classList.toggle('show', warn);
+}
+
+function updateCardState(param, val) {
+  const card = document.getElementById('card-'+param);
+  if (!card) return;
+  const thresh = THRESH[param];
+  const passes = (param === 'cd' || param === 'def') ? val < thresh : val > thresh;
+  card.classList.toggle('ok',      passes);
+  card.classList.toggle('warning', !passes);
+}
+
+// ── MONTE CARLO ───────────────────────────────────────────────────────────
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+// FIX 4: posterior SD is also updated toward user estimate (reduced uncertainty)
+function computePassProb(route, user, N = 100000) {
+  const w   = 0.6;   // user-measurement weight
+  const wSD = 0.4;   // SD shrinkage toward a "point estimate" floor
+  const pr  = route.prior;
+
+  // Blended posterior means
+  const mobMean  = pr.mob.mean  * (1 - w) + user.mob  * w;
+  const cdMean   = pr.cd.mean   * (1 - w) + user.cd   * w;
+  const domMean  = pr.dom.mean  * (1 - w) + user.dom  * w;
+  const defMean  = pr.def.mean  * (1 - w) + user.def  * w;
+  const monoMean = pr.mono.mean * (1 - w) + user.mono * w;
+
+  // FIX 4: blended posterior SDs (shrink toward zero but floor at 0.05)
+  const mobSD  = Math.max(0.05, pr.mob.sd  * (1 - wSD));
+  const cdSD   = Math.max(0.05, pr.cd.sd   * (1 - wSD));
+  const domSD  = Math.max(0.05, pr.dom.sd  * (1 - wSD));
+  const defSD  = Math.max(0.05, 0.5        * (1 - wSD));
+  const monoSD = Math.max(0.5,  pr.mono.sd * (1 - wSD));
+
+  const passes = { mob:0, cd:0, dom:0, def:0, mono:0, all:0 };
+
+  for (let i = 0; i < N; i++) {
+    const z1 = randn(), z2 = randn(), z3 = randn(), z4 = randn(), z5 = randn();
+
+    // Correlations: mob ↔ dom (ρ=0.7), def ↔ cd (ρ=0.3)
+    const zDom = 0.7  * z1 + Math.sqrt(1 - 0.49) * z2;
+    const zCd  = 0.3  * z4 + Math.sqrt(1 - 0.09) * z3;
+
+    const mob  = Math.exp(Math.log(mobMean)  - 0.5 * mobSD ** 2  + mobSD  * z1);
+    const dom  = Math.exp(Math.log(Math.max(domMean, 0.01)) - 0.5 * domSD ** 2 + domSD * zDom);
+    const def  = Math.exp(Math.log(defMean)  - 0.5 * defSD ** 2  + defSD  * z4);
+    const cd   = Math.exp(Math.log(cdMean)   - 0.5 * cdSD  ** 2  + cdSD   * zCd);
+    const mono = Math.min(100, Math.max(0, monoMean + monoSD * z5));
+
+    const pMob  = mob  > THRESH.mob  ? 1 : 0;
+    const pDom  = dom  > THRESH.dom  ? 1 : 0;
+    const pDef  = def  < THRESH.def  ? 1 : 0;
+    const pCd   = cd   < THRESH.cd   ? 1 : 0;
+    const pMono = mono > THRESH.mono ? 1 : 0;
+
+    passes.mob  += pMob;
+    passes.dom  += pDom;
+    passes.def  += pDef;
+    passes.cd   += pCd;
+    passes.mono += pMono;
+    passes.all  += pMob * pDom * pDef * pCd * pMono;
+  }
+
+  return {
+    mob:  passes.mob  / N * 100,
+    dom:  passes.dom  / N * 100,
+    def:  passes.def  / N * 100,
+    cd:   passes.cd   / N * 100,
+    mono: passes.mono / N * 100,
+    all:  passes.all  / N * 100
+  };
+}
+
+// ── RUN ───────────────────────────────────────────────────────────────────
+function runSimulation() {
+  const btn = document.getElementById('run-btn');
+  btn.classList.add('running');
+
+  // Defer heavy MC work one tick so spinner renders first
+  setTimeout(() => {
+    const user = { mob: params.mob, cd: params.cd, dom: params.dom, def: params.def, mono: params.mono };
+
+    // FIX 2: N=100,000 matches header claim
+    const results = ROUTES.map(r => ({ ...r, result: computePassProb(r, user, 100000) }));
+
+    results.sort((a, b) => b.result.all - a.result.all);
+
+    // Binding constraint: lowest marginal pass rate
+    results.forEach(r => {
+      const margs = [
+        { key:'mob',  val: r.result.mob  },
+        { key:'dom',  val: r.result.dom  },
+        { key:'def',  val: r.result.def  },
+        { key:'cd',   val: r.result.cd   },
+        { key:'mono', val: r.result.mono },
+      ];
+      margs.sort((a, b) => a.val - b.val);
+      r.binding = margs[0].key;
+    });
+
+    renderResults(results);
+    btn.classList.remove('running');
+    document.getElementById('results').classList.add('show');
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 400);
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+const PARAM_LABELS   = { mob:'Mobility', dom:'Domain', def:'Defect', cd:'Carrier n', mono:'Monolayer' };
+const BINDING_CLASSES = { mob:'binding-mob', cd:'binding-cd', dom:'binding-dom', def:'binding-def', mono:'binding-mono' };
+const BINDING_LABELS  = {
+  mob: 'Mobility binding',
+  cd:  'Carrier density binding',
+  dom: 'Domain size binding',
+  def: 'Defect density binding',
+  mono:'Monolayer coverage binding'
+};
+
+function probColor(p) {
+  if (p >= 40) return '#10b981';
+  if (p >= 25) return '#3b82f6';
+  if (p >= 10) return '#f59e0b';
+  return '#ef4444';
+}
+
+function renderResults(results) {
+  // ── Route cards ──
+  const grid = document.getElementById('routes-grid');
+  grid.innerHTML = '';
+
+  // FIX 3: Pareto / Top badges are now purely data-driven, not hardcoded to F/I/J
+  const topAll = results[0].result.all;
+  results.forEach((r, idx) => {
+    const p     = r.result.all;
+    const isTop = idx === 0;
+    // Pareto: within 15pp of leader and not the leader itself
+    const isPareto = !isTop && (topAll - p) <= 15 && p >= 10;
+    const isOut    = p < 5;
+
+    let badge = '';
+    if (isTop)    badge = `<div class="route-badge badge-top">★ Top Route</div>`;
+    else if (isPareto) badge = `<div class="route-badge badge-pareto">Pareto</div>`;
+    else if (isOut)    badge = `<div class="route-badge badge-out">Not viable</div>`;
+
+    const marginals = ['mob','dom','def','cd','mono'].map(k => {
+      const v   = r.result[k];
+      const col = v > 70 ? '#10b981' : v > 40 ? '#f59e0b' : '#ef4444';
+      return `<div class="marginal-cell">
+        <div class="marginal-label">${PARAM_LABELS[k].substring(0,4)}</div>
+        <div class="marginal-val" style="color:${col}">${v.toFixed(0)}%</div>
+      </div>`;
+    }).join('');
+
+    const card = document.createElement('div');
+    card.className = `route-card ${isTop ? 'top' : isPareto ? 'pareto' : isOut ? 'eliminated' : ''}`;
+    card.innerHTML = `
+      ${badge}
+      <div class="route-name">${r.name} · ${r.id}</div>
+      <div class="route-desc">${r.desc}</div>
+      <div class="prob-display" style="color:${probColor(p)}">${p.toFixed(1)}%</div>
+      <div class="prob-label">P(all 5 criteria)</div>
+      <div class="prob-bar">
+        <div class="prob-bar-fill" style="width:${Math.min(p,100)}%;background:${probColor(p)}"></div>
+      </div>
+      <div>
+        <span class="binding ${BINDING_CLASSES[r.binding]}">${BINDING_LABELS[r.binding]}</span>
+      </div>
+      <div class="marginals">${marginals}</div>
+    `;
+    grid.appendChild(card);
+  });
+
+  // ── FIX 5: Comparison rows — all 5 routes, in baseline probability order ──
+  const compRows = document.getElementById('comparison-rows');
+  compRows.innerHTML = '';
+  // Sort display order by baseline probability descending
+  const displayOrder = ['I','J','F','G','H'];
+  displayOrder.forEach(rid => {
+    const r    = results.find(x => x.id === rid);
+    if (!r) return;
+    const base = BASELINE[rid];
+    const user = r.result.all;
+    const delta    = user - base;
+    const deltaStr = delta >= 0 ? `+${delta.toFixed(1)}pp` : `${delta.toFixed(1)}pp`;
+    const deltaCol = delta >= 0 ? '#10b981' : '#ef4444';
+
+    const row = document.createElement('div');
+    row.className = 'comp-row';
+    row.innerHTML = `
+      <div class="comp-route">${rid} · ${r.desc.split('→')[0].trim()}</div>
+      <div class="comp-bars">
+        <div class="comp-bar-row">
+          <div class="comp-bar-label">Baseline</div>
+          <div class="comp-bar-track">
+            <div class="comp-bar-base" style="width:${base}%;background:var(--accent)"></div>
+          </div>
+          <div class="comp-val" style="color:var(--text2)">${base.toFixed(1)}%</div>
+        </div>
+        <div class="comp-bar-row">
+          <div class="comp-bar-label">Your data</div>
+          <div class="comp-bar-track">
+            <div class="comp-bar-user" style="width:${Math.min(user,100)}%;background:var(--accent2)"></div>
+          </div>
+          <div class="comp-val" style="color:var(--accent2)">
+            ${user.toFixed(1)}% <span style="color:${deltaCol};font-size:0.6rem">${deltaStr}</span>
+          </div>
+        </div>
+      </div>
+    `;
+    compRows.appendChild(row);
+  });
+
+  // ── Diagnosis ──
+  const top    = results[0];
+  const topP   = top.result.all;
+  const binding = top.binding;
+
+  let diag = '';
+  if (topP >= 40) {
+    diag = `Your inputs place <strong>${top.name} (${top.id})</strong> as the leading route at <strong>${topP.toFixed(1)}%</strong> joint pass probability. `;
+  } else if (topP >= 20) {
+    diag = `Your inputs produce a viable but constrained result. <strong>${top.name}</strong> leads at <strong>${topP.toFixed(1)}%</strong>. `;
+  } else {
+    diag = `Your inputs produce low joint pass probabilities across all routes. <strong>${top.name}</strong> leads at only <strong>${topP.toFixed(1)}%</strong>. `;
+  }
+
+  const mobVal = params.mob;
+  const cdVal  = params.cd;
+
+  const bindingAdvice = {
+    mob: `The binding constraint is <strong>carrier mobility</strong>. At your entered value of ${mobVal.toLocaleString()} cm²/V·s, ` +
+         (mobVal < 3500 ? `you are below the Route F/I crossover threshold of 3,500–4,500 cm²/V·s. Prioritise H-plasma treatment optimisation and Ni catalyst reduction.`
+         : mobVal < 4500 ? `you are within the Route F/I crossover window. Small mobility gains will shift the leading route.`
+         : `you are above the crossover threshold — Route F architectural advantages are now fully accessible.`),
+    cd:  `The binding constraint is <strong>carrier density</strong>. Residual doping at ${cdVal.toExponential(1)} cm⁻² exceeds the Pauli blocking threshold. ` +
+         (cdVal > 1e12 ? `H-plasma treatment and substrate engineering are required. Confirm Raman measurements use strain-decomposition (Experiment 3).`
+         : `Consider whether transfer-induced charge traps are the primary source — hBN encapsulation reduces this penalty by ~4×.`),
+    dom: `The binding constraint is <strong>domain size</strong>. This is a substrate physics wall if you are working with UNCD or polycrystalline substrates. ` +
+         `For CVD routes, domain size is process-improvable through nucleation density reduction and longer growth times.`,
+    def: `The binding constraint is <strong>defect density</strong>. Elevated I_D/I_G suggests point defects or grain boundary scattering. ` +
+         `For CVD routes this is typically reducible with temperature and atmosphere optimisation. For in-place graphitization, Ni residual incorporation may be the source.`,
+    mono:`The binding constraint is <strong>monolayer coverage</strong>. Bilayer island formation reduces average optical modulation depth. ` +
+         `This is typically addressable through growth parameter tuning — lower carbon precursor partial pressure and longer annealing.`
+  };
+
+  diag += bindingAdvice[binding] || '';
+
+  if (mobVal >= 3500 && mobVal <= 4500) {
+    diag += ` <strong>Note:</strong> Your mobility value falls within the Route F/I crossover window (3,500–4,500 cm²/V·s). Results are sensitive to mobility precision here — switch to Precise mode and enter your measured Hall value for the most accurate ranking.`;
+  }
+
+  document.getElementById('diagnosis-text').innerHTML = diag;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+setMode('slider');
+Object.keys(params).forEach(p => updateCardState(p, params[p]));
+// Initialise cd slider position to match default params.cd = 1e12
+document.getElementById('sl-cd').value = cdValueToIndex(1e12);
+</script>
+
+</body>
+</html>
